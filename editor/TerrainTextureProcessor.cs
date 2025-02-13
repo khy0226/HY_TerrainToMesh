@@ -332,12 +332,13 @@ public class TerrainTextureProcessor
 
     public void GenerateLodSplitTextures(Terrain terrain, int splitCount, int resolution, string savePath, string lodPrefix, bool includeNormalMap)
     {
+        int resolutionRT = resolution * splitCount;
         // LOD 렌더링용 Material 설정
         Material customMaterial = new Material(Shader.Find("Hidden/Custom/TerrainUnifiedShader"));
         LodRenderToTexture(terrain, customMaterial);
 
         // RenderTexture 생성
-        RenderTexture rt = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+        RenderTexture rt = new RenderTexture(resolutionRT, resolutionRT, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
         rt.enableRandomWrite = true;
         rt.Create();
 
@@ -347,9 +348,9 @@ public class TerrainTextureProcessor
         Graphics.Blit(null, rt, customMaterial, 0);
 
         // 알베도 RenderTexture -> Texture2D 변환
-        Texture2D fullAlbedoTexture = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false);
+        Texture2D fullAlbedoTexture = new Texture2D(resolutionRT, resolutionRT, TextureFormat.RGBA32, false);
         RenderTexture.active = rt;
-        fullAlbedoTexture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
+        fullAlbedoTexture.ReadPixels(new Rect(0, 0, resolutionRT, resolutionRT), 0, 0);
         fullAlbedoTexture.Apply();
 
         // 노말 맵 텍스처 촬영 (선택적 처리)
@@ -360,9 +361,9 @@ public class TerrainTextureProcessor
             customMaterial.EnableKeyword("_TEXTURE_TYPE_NORMAL");
             Graphics.Blit(null, rt, customMaterial, 0);
 
-            fullNormalTexture = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false);
+            fullNormalTexture = new Texture2D(resolutionRT, resolutionRT, TextureFormat.RGBA32, false);
             RenderTexture.active = rt;
-            fullNormalTexture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
+            fullNormalTexture.ReadPixels(new Rect(0, 0, resolutionRT, resolutionRT), 0, 0);
             fullNormalTexture.Apply();
         }
 
@@ -370,7 +371,7 @@ public class TerrainTextureProcessor
         rt.Release();
 
         // 텍스처 조각 분리 및 저장
-        int chunkResolution = resolution / splitCount;
+        int chunkResolution = resolution;
         for (int z = 0; z < splitCount; z++)
         {
             for (int x = 0; x < splitCount; x++)
