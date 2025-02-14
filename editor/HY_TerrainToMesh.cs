@@ -154,6 +154,7 @@ public class HY_TerrainToMesh : EditorWindow
         GUILayout.FlexibleSpace(); // 공간 밀기
         GUILayout.Space(10);
 
+
         // 탭별로 버튼 동작을 나누기
         if (currentTab == Tab.TextureConversion)
         {
@@ -182,16 +183,17 @@ public class HY_TerrainToMesh : EditorWindow
                     foreach (var terrain in textureProcessor.terrains)
                     {
                         if (terrain == null) continue;
+                        string textureName = $"{filePrefix}{terrain.name}";
 
                         // 지형을 나눌때 지형마다 스플랫맵 생성
                         if (textureProcessor.terrains.Length == 1 && splitOption && !sameMaterial)
                         {
-                            textureProcessor.GenerateSplitSplatmaps(terrain, selectedSplitCount, savePath, filePrefix);
+                            textureProcessor.GenerateSplitSplatmaps(terrain, selectedSplitCount, savePath, textureName);
                         }
                         // 스플랫맵 나누지 않음
                         else
                         {
-                            textureProcessor.GenerateSingleSplatmap(savePath, filePrefix);
+                            textureProcessor.GenerateSingleSplatmap(savePath, textureName);
                         }
 
                         // 지형 나누기
@@ -223,11 +225,12 @@ public class HY_TerrainToMesh : EditorWindow
                 {
                     foreach (var terrain in textureProcessor.terrains)
                     {
+                        string textureName = $"{lodPrefix}{terrain.name}";
                         // -------터레인 하나일때---------
                         // lod메쉬랑 lod텍스처를 모두 나눴을경우
                         if (textureProcessor.terrains.Length == 1 && lodMeshSplit && lodTextureSplit)
                         {
-                            textureProcessor.GenerateLodSplitTextures(terrain, selectedSplitCount, lodTextureSize, savePath, lodPrefix, lodNormalTexture);
+                            textureProcessor.GenerateLodSplitTextures(terrain, selectedSplitCount, lodTextureSize, savePath, textureName, lodNormalTexture);
                             GenerateLodSplitMeshes();
                         }
                         // lod메쉬는 나눴고 텍스처는 메쉬지형과 같은거 사용
@@ -238,14 +241,14 @@ public class HY_TerrainToMesh : EditorWindow
                         // lod메쉬는 나눴고 lod텍스처는 한장
                         else if (textureProcessor.terrains.Length == 1 && lodMeshSplit && lodTexture)
                         {
-                            textureProcessor.GenerateLodTexture(terrain, lodTextureSize, savePath, lodPrefix, lodNormalTexture);
+                            textureProcessor.GenerateLodTexture(terrain, lodTextureSize, savePath, textureName, lodNormalTexture);
                             GenerateLodSplitMeshes();
                         }
                         // -------터레인 여러개일때---------
                         // lod 텍스처 생성
                         else if (lodTexture)
                         {
-                            textureProcessor.GenerateLodTexture(terrain, lodTextureSize, savePath, lodPrefix, lodNormalTexture);
+                            textureProcessor.GenerateLodTexture(terrain, lodTextureSize, savePath, textureName, lodNormalTexture);
                             GenerateLodMeshes();
                         }
                         // 메쉬지형꺼랑 같은거 사용

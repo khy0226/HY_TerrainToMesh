@@ -77,7 +77,7 @@ public class TerrainTextureProcessor
 
 
     // 스플랫맵 텍스처 생성
-    public void GenerateSingleSplatmap(string savePath , string filePrefix)
+    public void GenerateSingleSplatmap(string savePath , string textureName)
     {
         if (terrains == null || terrains.Length == 0)
         {
@@ -117,7 +117,7 @@ public class TerrainTextureProcessor
                 Texture2D mergedSplatmap = MergeSplatmapLayersToRGBA(alphaMaps, resolution, layerCount, i * 4);
 
                 // 저장 경로 지정 (filePrefix 적용)
-                string splatmapPath = Path.Combine(savePath, $"{filePrefix}{terrain.name}_splatmap{i}.png");
+                string splatmapPath = Path.Combine(savePath, $"{textureName}_splatmap{i}.png");
                 SaveSplatmapAsPNG(mergedSplatmap, splatmapPath);
 
                 Debug.Log($"Splatmap for Terrain '{terrain.name}', Part {i} saved at: {splatmapPath}");
@@ -149,7 +149,7 @@ public class TerrainTextureProcessor
         return layerIndexMap;
     }
 
-    public void GenerateSplitSplatmaps(Terrain terrain, int splitCount, string savePath, string filePrefix)
+    public void GenerateSplitSplatmaps(Terrain terrain, int splitCount, string savePath, string textureName)
     {
         if (terrain == null || terrain.terrainData == null)
         {
@@ -197,7 +197,7 @@ public class TerrainTextureProcessor
                     Texture2D mergedSplatmap = MergeSplatmapLayersToRGBA(alphaMaps, targetResolution, layerCount, i * 4);
 
                     // 저장 경로 지정 (파일명에 조각 정보 추가)
-                    string splatmapPath = Path.Combine(savePath, $"{filePrefix}{terrain.name}_{x}_{z}_splatmap{i}.png");
+                    string splatmapPath = Path.Combine(savePath, $"{textureName}_{x}_{z}_splatmap{i}.png");
                     SaveSplatmapAsPNG(mergedSplatmap, splatmapPath);
 
                     Debug.Log($"Splatmap for Chunk ({x}, {z}), Part {i} saved at: {splatmapPath}");
@@ -301,7 +301,7 @@ public class TerrainTextureProcessor
     }
 
 
-    public void GenerateLodTexture(Terrain terrain, int resolution, string savePath, string lodPrefix, bool normalToggle)
+    public void GenerateLodTexture(Terrain terrain, int resolution, string savePath, string textureName, bool normalToggle)
     {
         if (terrain == null || terrain.terrainData == null)
         {
@@ -320,17 +320,17 @@ public class TerrainTextureProcessor
         }
 
         // BaseMap 촬영 및 저장
-        GenerateTexture(customMaterial, resolution, savePath, $"{lodPrefix}{terrain.name}_AL", isNormalMap: false, TextureType.Albedo);
+        GenerateTexture(customMaterial, resolution, savePath, $"{textureName}_AL", isNormalMap: false, TextureType.Albedo);
         if (normalToggle)
         {
-            GenerateTexture(customMaterial, resolution, savePath, $"{lodPrefix}{terrain.name}_NO", isNormalMap: true, TextureType.Normal);
+            GenerateTexture(customMaterial, resolution, savePath, $"{textureName}_NO", isNormalMap: true, TextureType.Normal);
         }
 
         Debug.Log($"LOD Texture generation completed for: {terrain.name}");
     }
 
 
-    public void GenerateLodSplitTextures(Terrain terrain, int splitCount, int resolution, string savePath, string lodPrefix, bool includeNormalMap)
+    public void GenerateLodSplitTextures(Terrain terrain, int splitCount, int resolution, string savePath, string textureName, bool includeNormalMap)
     {
         int resolutionRT = resolution * splitCount;
         // LOD 렌더링용 Material 설정
@@ -378,7 +378,7 @@ public class TerrainTextureProcessor
             {
                 // 알베도 조각 추출 및 저장
                 Texture2D albedoChunk = ExtractChunkTexture(fullAlbedoTexture, chunkResolution, x, z);
-                string albedoPath = Path.Combine(savePath, $"{lodPrefix}{terrain.name}_{x}_{z}_AL.png");
+                string albedoPath = Path.Combine(savePath, $"{textureName}_{x}_{z}_AL.png");
                 SaveTextureAsPNG(albedoChunk, savePath, albedoPath);
                 LodConfigureTexture(albedoPath, isNormalMap: false);
                 Debug.Log($"Saved Albedo Chunk: {albedoPath}");
@@ -388,7 +388,7 @@ public class TerrainTextureProcessor
                 if (includeNormalMap && fullNormalTexture != null)
                 {
                     Texture2D normalChunk = ExtractChunkTexture(fullNormalTexture, chunkResolution, x, z);
-                    string normalPath = Path.Combine(savePath, $"{lodPrefix}{terrain.name}_{x}_{z}_NO.png");
+                    string normalPath = Path.Combine(savePath, $"{textureName}_{x}_{z}_NO.png");
                     SaveTextureAsPNG(normalChunk, savePath, normalPath);
                     LodConfigureTexture(normalPath, isNormalMap: true);
                     Debug.Log($"Saved Normal Chunk: {normalPath}");
