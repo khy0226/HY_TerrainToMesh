@@ -193,7 +193,7 @@ public class HY_TerrainToMesh : EditorWindow
                         // 스플랫맵 나누지 않음
                         else
                         {
-                            textureProcessor.GenerateSingleSplatmap(savePath, textureName);
+                            textureProcessor.GenerateSingleSplatmap(terrain, savePath, textureName);
                         }
 
                         // 지형 나누기

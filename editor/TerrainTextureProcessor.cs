@@ -77,7 +77,7 @@ public class TerrainTextureProcessor
 
 
     // 스플랫맵 텍스처 생성
-    public void GenerateSingleSplatmap(string savePath , string textureName)
+    public void GenerateSingleSplatmap(Terrain terrain, string savePath, string textureName)
     {
         if (terrains == null || terrains.Length == 0)
         {
@@ -85,46 +85,35 @@ public class TerrainTextureProcessor
             return;
         }
 
-        // Terrain별로 처리
-        for (int t = 0; t < terrains.Length; t++)
+        // 스플랫맵 해상도 결정
+        int fullResolution = terrain.terrainData.alphamapResolution;
+
+        // 사용자 지정 크기 또는 디폴트
+        int resolution = splatmapSize == -1
+            ? fullResolution
+            : Mathf.Min(splatmapSize, fullResolution); // 해상도 제한
+
+        float[,,] alphaMaps = terrain.terrainData.GetAlphamaps(0, 0, resolution, resolution);
+        int layerCount = terrain.terrainData.alphamapLayers;
+
+        Debug.Log($"Generating splatmaps for Terrain '{terrain.name}' with resolution {resolution} and {layerCount} layers.");
+
+        // 필요한 Splatmap 개수 계산 (4개 채널씩 병합)
+        int splatmapCount = Mathf.CeilToInt((float)layerCount / 4);
+
+        for (int i = 0; i < splatmapCount; i++)
         {
-            Terrain terrain = terrains[t];
-            if (terrain == null || terrain.terrainData == null)
-            {
-                Debug.LogWarning($"Skipping invalid terrain at index {t}.");
-                continue;
-            }
+            // RGBA 병합 (4채널씩 병합)
+            Texture2D mergedSplatmap = MergeSplatmapLayersToRGBA(alphaMaps, resolution, layerCount, i * 4);
 
-            // 스플랫맵 해상도 결정
-            int fullResolution = terrain.terrainData.alphamapResolution;
+            // 저장 경로 지정 (filePrefix 적용)
+            string splatmapPath = Path.Combine(savePath, $"{textureName}_splatmap{i}.png");
+            SaveSplatmapAsPNG(mergedSplatmap, splatmapPath);
 
-            // 사용자 지정 크기 또는 디폴트
-            int resolution = splatmapSize == -1
-                ? fullResolution
-                : Mathf.Min(splatmapSize, fullResolution); // 해상도 제한
+            Debug.Log($"Splatmap for Terrain '{terrain.name}', Part {i} saved at: {splatmapPath}");
 
-            float[,,] alphaMaps = terrain.terrainData.GetAlphamaps(0, 0, resolution, resolution);
-            int layerCount = terrain.terrainData.alphamapLayers;
-
-            Debug.Log($"Generating splatmaps for Terrain '{terrain.name}' with resolution {resolution} and {layerCount} layers.");
-
-            // 필요한 Splatmap 개수 계산 (4개 채널씩 병합)
-            int splatmapCount = Mathf.CeilToInt((float)layerCount / 4);
-
-            for (int i = 0; i < splatmapCount; i++)
-            {
-                // RGBA 병합 (4채널씩 병합)
-                Texture2D mergedSplatmap = MergeSplatmapLayersToRGBA(alphaMaps, resolution, layerCount, i * 4);
-
-                // 저장 경로 지정 (filePrefix 적용)
-                string splatmapPath = Path.Combine(savePath, $"{textureName}_splatmap{i}.png");
-                SaveSplatmapAsPNG(mergedSplatmap, splatmapPath);
-
-                Debug.Log($"Splatmap for Terrain '{terrain.name}', Part {i} saved at: {splatmapPath}");
-
-                // 메모리 정리
-                Object.DestroyImmediate(mergedSplatmap);
-            }
+            // 메모리 정리
+            Object.DestroyImmediate(mergedSplatmap);
         }
 
         // 에셋 데이터 갱신
